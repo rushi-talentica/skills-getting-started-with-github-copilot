@@ -13,7 +13,9 @@ document.addEventListener("DOMContentLoaded", () => {
       // Clear loading message
       activitiesList.innerHTML = "";
 
-      // Populate activities list
+      // Clear activitySelect before repopulating to avoid duplicates
+      activitySelect.innerHTML = '<option value="">-- Select an activity --</option>';
+
       Object.entries(activities).forEach(([name, details]) => {
         const activityCard = document.createElement("div");
         activityCard.className = "activity-card";
@@ -38,9 +40,45 @@ document.addEventListener("DOMContentLoaded", () => {
         if (details.participants.length > 0) {
           const ul = document.createElement("ul");
           ul.className = "participants-list";
+          ul.style.listStyle = "none";
+          ul.style.paddingLeft = "0";
           details.participants.forEach((email) => {
             const li = document.createElement("li");
-            li.textContent = email;
+            li.style.display = "flex";
+            li.style.alignItems = "center";
+
+            // Email text
+            const emailSpan = document.createElement("span");
+            emailSpan.textContent = email;
+            li.appendChild(emailSpan);
+
+            // Delete icon
+            const delBtn = document.createElement("button");
+            delBtn.innerHTML = "<span style='font-size:18px; color:#c62828; margin-left:8px; cursor:pointer;' title='Remove'>&#10006;</span>";
+            delBtn.style.background = "none";
+            delBtn.style.border = "none";
+            delBtn.style.cursor = "pointer";
+            delBtn.style.padding = "0 0 0 8px";
+            delBtn.setAttribute("aria-label", `Remove ${email}`);
+            delBtn.addEventListener("click", async (e) => {
+              e.stopPropagation();
+              if (!confirm(`Remove ${email} from ${name}?`)) return;
+              try {
+                const response = await fetch(`/activities/${encodeURIComponent(name)}/unregister?email=${encodeURIComponent(email)}`, {
+                  method: "DELETE"
+                });
+                if (response.ok) {
+                  fetchActivities();
+                } else {
+                  const result = await response.json();
+                  alert(result.detail || "Failed to remove participant.");
+                }
+              } catch (err) {
+                alert("Failed to remove participant.");
+              }
+            });
+            li.appendChild(delBtn);
+
             ul.appendChild(li);
           });
           partSection.appendChild(ul);
@@ -87,6 +125,8 @@ document.addEventListener("DOMContentLoaded", () => {
         messageDiv.textContent = result.message;
         messageDiv.className = "success";
         signupForm.reset();
+        // Refresh activities list to show new participant
+        fetchActivities();
       } else {
         messageDiv.textContent = result.detail || "An error occurred";
         messageDiv.className = "error";
