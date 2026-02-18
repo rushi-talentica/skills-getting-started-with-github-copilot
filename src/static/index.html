@@ -16,8 +16,8 @@
       <section id="activities-container">
         <h3>Available Activities</h3>
         <div id="activities-list">
-          <!-- Activities will be loaded here -->
-          <p>Loading activities...</p>
+            <!-- Activities will be loaded here -->
+            <p>Loading activities...</p>
         </div>
       </section>
 
@@ -46,5 +46,77 @@
     </footer>
 
     <script src="app.js"></script>
+    <script>
+    // Add this script to enhance the activity cards with participants
+    document.addEventListener("DOMContentLoaded", () => {
+      const activitiesList = document.getElementById("activities-list");
+      const activitySelect = document.getElementById("activity");
+
+      fetch("/activities")
+        .then((res) => res.json())
+        .then((activities) => {
+          activitiesList.innerHTML = "";
+          activitySelect.innerHTML = '<option value="">-- Select an activity --</option>';
+
+          Object.entries(activities).forEach(([name, details]) => {
+            // Create card
+            const card = document.createElement("div");
+            card.className = "activity-card";
+
+            // Title
+            const title = document.createElement("h4");
+            title.textContent = name;
+            card.appendChild(title);
+
+            // Description
+            const desc = document.createElement("p");
+            desc.textContent = details.description;
+            card.appendChild(desc);
+
+            // Schedule
+            const sched = document.createElement("p");
+            sched.innerHTML = `<strong>Schedule:</strong> ${details.schedule}`;
+            card.appendChild(sched);
+
+            // Max participants
+            const max = document.createElement("p");
+            max.innerHTML = `<strong>Max Participants:</strong> ${details.max_participants}`;
+            card.appendChild(max);
+
+            // Participants section
+            const partSection = document.createElement("div");
+            partSection.className = "participants-section";
+            const partTitle = document.createElement("strong");
+            partTitle.textContent = "Participants:";
+            partSection.appendChild(partTitle);
+
+            if (details.participants.length > 0) {
+              const ul = document.createElement("ul");
+              ul.className = "participants-list";
+              details.participants.forEach((email) => {
+                const li = document.createElement("li");
+                li.textContent = email;
+                ul.appendChild(li);
+              });
+              partSection.appendChild(ul);
+            } else {
+              const none = document.createElement("span");
+              none.className = "no-participants";
+              none.textContent = "No participants yet.";
+              partSection.appendChild(none);
+            }
+            card.appendChild(partSection);
+
+            activitiesList.appendChild(card);
+
+            // Add to select
+            const option = document.createElement("option");
+            option.value = name;
+            option.textContent = name;
+            activitySelect.appendChild(option);
+          });
+        });
+    });
+    </script>
   </body>
 </html>
