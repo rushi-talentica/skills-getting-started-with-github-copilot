@@ -20,12 +20,37 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const spotsLeft = details.max_participants - details.participants.length;
 
+        // Build main card content
         activityCard.innerHTML = `
           <h4>${name}</h4>
           <p>${details.description}</p>
           <p><strong>Schedule:</strong> ${details.schedule}</p>
           <p><strong>Availability:</strong> ${spotsLeft} spots left</p>
         `;
+
+        // Participants section
+        const partSection = document.createElement("div");
+        partSection.className = "participants-section";
+        const partTitle = document.createElement("strong");
+        partTitle.textContent = "Participants:";
+        partSection.appendChild(partTitle);
+
+        if (details.participants.length > 0) {
+          const ul = document.createElement("ul");
+          ul.className = "participants-list";
+          details.participants.forEach((email) => {
+            const li = document.createElement("li");
+            li.textContent = email;
+            ul.appendChild(li);
+          });
+          partSection.appendChild(ul);
+        } else {
+          const none = document.createElement("span");
+          none.className = "no-participants";
+          none.textContent = "No participants yet.";
+          partSection.appendChild(none);
+        }
+        activityCard.appendChild(partSection);
 
         activitiesList.appendChild(activityCard);
 
